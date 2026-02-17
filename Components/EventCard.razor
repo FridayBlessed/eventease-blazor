@@ -1,0 +1,47 @@
+@using EventEase.Models
+
+<div class="event-card @(Event.AvailableSpots <= 0 ? "sold-out" : "")">
+    <div class="event-card-header">
+        <h3>@Event.Title</h3>
+        <span class="badge @(Event.AvailableSpots > 0 ? "badge-active" : "badge-full")">
+            @(Event.AvailableSpots > 0 ? "Open" : "Full")
+        </span>
+    </div>
+    <p class="event-description">@Event.Description</p>
+    <div class="event-details">
+        <p><strong>Date:</strong> @Event.Date?.ToString("MMMM dd, yyyy")</p>
+        <p><strong>Location:</strong> @Event.Location</p>
+        <p><strong>Capacity:</strong> @Event.CurrentAttendees / @Event.MaxCapacity</p>
+        <p><strong>Available Spots:</strong> @Event.AvailableSpots</p>
+    </div>
+    <div class="event-card-actions">
+        <button class="btn btn-primary" @onclick="OnRegisterClicked"
+                disabled="@(Event.AvailableSpots <= 0)">
+            @(Event.AvailableSpots > 0 ? "Register" : "Sold Out")
+        </button>
+        <button class="btn btn-secondary" @onclick="OnViewDetailsClicked">
+            View Attendance
+        </button>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public EventModel Event { get; set; } = new();
+
+    [Parameter]
+    public EventCallback<int> OnRegister { get; set; }
+
+    [Parameter]
+    public EventCallback<int> OnViewDetails { get; set; }
+
+    private async Task OnRegisterClicked()
+    {
+        await OnRegister.InvokeAsync(Event.Id);
+    }
+
+    private async Task OnViewDetailsClicked()
+    {
+        await OnViewDetails.InvokeAsync(Event.Id);
+    }
+}

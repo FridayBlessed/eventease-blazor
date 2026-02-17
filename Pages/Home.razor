@@ -1,0 +1,124 @@
+@page "/"
+@using EventEase.Models
+@using EventEase.Services
+@using EventEase.Components
+@inject EventService EventService
+@inject SessionService Session
+@inject NavigationManager Navigation
+
+<PageTitle>EventEase - Home</PageTitle>
+
+<div class="page-header">
+    <h1>EventEase</h1>
+    <p class="subtitle">Discover and register for upcoming events</p>
+    @if (Session.IsLoggedIn)
+    {
+        <p class="welcome-msg">Welcome back, @Session.CurrentUserName!</p>
+    }
+</div>
+
+<div class="search-filter-bar">
+    <div class="search-box">
+        <input type="text" class="form-control" placeholder="Search events..."
+               @bind="searchTerm" @bind:event="oninput" @bind:after="ApplyFilters" />
+    </div>
+    <div class="filter-box">
+        <select class="form-control" @onchange="OnLocationFilterChanged">
+            <option value="">All Locations</option>
+            @foreach (var loc in locations)
+            {
+                <option value="@loc">@loc</option>
+            }
+        </select>
+    </div>
+    <div class="filter-box">
+        <select class="form-control" @onchange="OnStatusFilterChanged">
+            <option value="">All Events</option>
+            <option value="available">Available</option>
+            <option value="full">Full</option>
+        </select>
+    </div>
+</div>
+
+@if (filteredEvents.Count == 0)
+{
+    <p class="empty-state">No events match your search criteria.</p>
+}
+else
+{
+    <p class="results-count">Showing @filteredEvents.Count event(s)</p>
+    <div class="events-grid">
+        @foreach (var eventItem in filteredEvents)
+        {
+            <EventCard Event="@eventItem"
+                       OnRegister="HandleRegister"
+                       OnViewDetails="HandleViewDetails" />
+        }
+    </div>
+}
+
+@code {
+    private List<EventModel> allEvents = new();
+    private List<EventModel> filteredEvents = new();
+    private List<string> locations = new();
+    private string searchTerm = string.Empty;
+    private string selectedLocation = string.Empty;
+    private string selectedStatus = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        allEvents = EventService.GetAllEvents();
+        locations = allEvents.Select(e => e.Location).Distinct().OrderBy(l => l).ToList();
+        ApplyFilters();
+    }
+
+    private void ApplyFilters()
+    {
+        IEnumerable<EventModel> query = allEvents;
+
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            query = query.Where(e =>
+                e.Title.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                e.Description.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (!string.IsNullOrWhiteSpace(selectedLocation))
+        {
+            query = query.Where(e => e.Location == selectedLocation);
+        }
+
+        if (selectedStatus == "available")
+        {
+            query = query.Where(e => e.AvailableSpots > 0);
+        }
+        else if (selectedStatus == "full")
+        {
+            query = query.Where(e => e.AvailableSpots <= 0);
+        }
+
+        filteredEvents = query.ToList();
+    }
+
+    private void OnLocationFilterChanged(ChangeEventArgs e)
+    {
+        selectedLocation = e.Value?.ToString() ?? "";
+        ApplyFilters();
+    }
+
+    private void OnStatusFilterChanged(ChangeEventArgs e)
+    {
+        selectedStatus = e.Value?.ToString() ?? "";
+        ApplyFilters();
+    }
+
+    private void HandleRegister(int eventId)
+    {
+        Navigation.NavigateTo($"/register/{eventId}");
+    }
+
+    private void HandleViewDetails(int eventId)
+    {
+        Navigation.NavigateTo($"/attendance/{eventId}");
+    }
+}

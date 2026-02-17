@@ -1,0 +1,113 @@
+@page "/register"
+@page "/register/{EventId:int}"
+@using EventEase.Models
+@using EventEase.Services
+@inject EventService EventService
+@inject SessionService Session
+@inject NavigationManager Navigation
+
+<PageTitle>EventEase - Register</PageTitle>
+
+<div class="page-header">
+    <h1>Event Registration</h1>
+    <p class="subtitle">Fill out the form below to register for an event</p>
+</div>
+
+@if (!string.IsNullOrEmpty(successMessage))
+{
+    <div class="alert alert-success">@successMessage</div>
+}
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-error">@errorMessage</div>
+}
+
+<div class="form-container">
+    <EditForm Model="@registration" OnValidSubmit="HandleSubmit">
+        <DataAnnotationsValidator />
+
+        <div class="form-group">
+            <label for="fullName">Full Name</label>
+            <InputText id="fullName" @bind-Value="registration.FullName" class="form-control" placeholder="Enter your full name" />
+            <ValidationMessage For="@(() => registration.FullName)" />
+        </div>
+
+        <div class="form-group">
+            <label for="email">Email Address</label>
+            <InputText id="email" @bind-Value="registration.Email" class="form-control" placeholder="your@email.com" />
+            <ValidationMessage For="@(() => registration.Email)" />
+        </div>
+
+        <div class="form-group">
+            <label for="eventSelect">Select Event</label>
+            <InputSelect id="eventSelect" @bind-Value="registration.EventId" class="form-control">
+                <option value="0">-- Choose an event --</option>
+                @foreach (var e in events)
+                {
+                    <option value="@e.Id">@e.Title (@e.AvailableSpots spots left)</option>
+                }
+            </InputSelect>
+            <ValidationMessage For="@(() => registration.EventId)" />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Register</button>
+
+        <ValidationSummary />
+    </EditForm>
+</div>
+
+@code {
+    [Parameter]
+    public int EventId { get; set; }
+
+    private RegistrationModel registration = new();
+    private List<EventModel> events = new();
+    private string successMessage = string.Empty;
+    private string errorMessage = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        events = EventService.GetAllEvents().Where(e => e.AvailableSpots > 0).ToList();
+
+        if (EventId > 0)
+        {
+            registration.EventId = EventId;
+        }
+
+        // Pre-fill from session if logged in
+        if (Session.IsLoggedIn)
+        {
+            registration.FullName = Session.CurrentUserName ?? "";
+            registration.Email = Session.CurrentUserEmail ?? "";
+        }
+    }
+
+    private void HandleSubmit()
+    {
+        successMessage = string.Empty;
+        errorMessage = string.Empty;
+
+        bool result = EventService.RegisterForEvent(registration);
+
+        if (result)
+        {
+            Session.Login(registration.FullName, registration.Email);
+
+            var eventItem = EventService.GetEventById(registration.EventId);
+            successMessage = $"Successfully registered for '{eventItem?.Title}'!";
+
+            // Refresh events list and reset form
+            events = EventService.GetAllEvents().Where(e => e.AvailableSpots > 0).ToList();
+            registration = new RegistrationModel
+            {
+                FullName = Session.CurrentUserName ?? "",
+                Email = Session.CurrentUserEmail ?? ""
+            };
+        }
+        else
+        {
+            errorMessage = "Registration failed. You may already be registered for this event, or the event may be full.";
+        }
+    }
+}
