@@ -43,7 +43,7 @@ EventEase/
 - .NET 10.0 / C#
 - Blazor WebAssembly
 - Bootstrap 5
-- DataAnnotations for validation
+- DataAnnotations for validation.
 
 ## Build
 
