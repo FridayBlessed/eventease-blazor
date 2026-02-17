@@ -12,7 +12,7 @@ Blazor WebAssembly event management application built for **Course 4: Blazor for
 - **Create Event** - full form with `DataAnnotationsValidator` for adding new events with title, description, date, location, and capacity
 - **Routing** - parameterized routes (`/register/{EventId:int}`, `/attendance/{EventId:int}`), `NavigationManager` for programmatic navigation, 404 Not Found page
 - **Input Validation** - `[Required]`, `[StringLength]`, `[EmailAddress]`, `[Range]` annotations on all models with `ValidationMessage` and `ValidationSummary` components
-- **Responsive Design** - CSS grid layouts, mobile breakpoints, custom styling for cards, forms, tables, badges, and progress bars
+- **Responsive Design** - CSS grid layouts, mobile breakpoints, custom styling for cards, forms, tables, badges, and progress bars.
 
 ## Project Structure
 
