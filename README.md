@@ -56,4 +56,4 @@ dotnet run      # launches at https://localhost:5077
 
 ## AUTHOR
 
-[https://Github.com/FridayBlessed](Friday Blessed)
+[FridayBlessed](https://github.com/FridayBlessed)
