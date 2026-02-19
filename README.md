@@ -48,6 +48,8 @@ EventEase/
 ## Build
 
 ```bash
+# Restore dependencies
+dotnet restore
 dotnet build   
 dotnet run      # launches at https://localhost:5077
 ```
