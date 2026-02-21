@@ -50,8 +50,10 @@ EventEase/
 ```bash
 
 dotnet restore   # Restore dependencies
-dotnet build    # Compiles the code
-dotnet run      # launches at https://localhost:5077
+
+dotnet build     # Compiles the code
+
+dotnet run       # launches at https://localhost:5077
 ```
 
 ## AUTHOR
